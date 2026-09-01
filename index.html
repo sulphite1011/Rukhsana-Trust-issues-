@@ -214,9 +214,10 @@
     <source src="mile_ho_tum.mp3" type="audio/mpeg">
   </audio>
 
-  <!-- Floating Music Toggle Button -->
-  <div style="position: fixed; top: 16px; right: 20px; z-index: 100;">
-    <button id="music-toggle-btn" class="btn-secondary" style="padding: 10px 18px; font-size: 13px; border-color: rgba(255,79,154,0.5); background: rgba(15,3,25,0.85); box-shadow: 0 4px 15px rgba(255,79,154,0.25);">
+  <!-- Floating Music & Sound Control Panel -->
+  <div style="position: fixed; top: 16px; right: 16px; z-index: 100; display: flex; align-items: center; gap: 8px;">
+    <!-- Main Music Button -->
+    <button id="music-toggle-btn" class="btn-secondary" style="padding: 10px 18px; font-size: 13px; border-color: rgba(255,79,154,0.5); background: rgba(15,3,25,0.9); box-shadow: 0 4px 18px rgba(255,79,154,0.3); cursor: pointer;">
       <span id="play-icon" style="font-size: 14px;">▶</span>
       <span id="music-btn-text" style="font-weight: 600; color: #ff82bb;">Play Song: Mile Ho Tum</span>
       <div id="eq-container" style="display: none; align-items: flex-end; gap: 2px; height: 14px; margin-left: 4px;">
@@ -225,6 +226,18 @@
         <span class="eq-bar-3" style="width: 3px; background: #ff82bb; border-radius: 3px; display: inline-block;"></span>
       </div>
     </button>
+
+    <!-- Speaker / Sound Test & Volume Button -->
+    <button id="btn-sound-test" class="btn-secondary" title="Test Speaker & Sound Output" style="padding: 10px 12px; font-size: 13px; background: rgba(15,3,25,0.9); border-color: rgba(140,82,255,0.4);" onclick="testSpeakerChime(event)">
+      <span>🔊</span>
+    </button>
+  </div>
+
+  <!-- Floating Audio Status Notice (appears when playing) -->
+  <div id="audio-toast" style="position: fixed; bottom: 20px; right: 20px; z-index: 99; padding: 10px 18px; border-radius: 999px; background: rgba(20,4,35,0.92); border: 1px solid rgba(255,79,154,0.4); color: #f3e8ff; font-size: 12px; display: none; align-items: center; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); backdrop-filter: blur(10px); animation: fadeIn 0.3s ease;">
+    <span>🎵</span>
+    <span>Playing <strong>Mile Ho Tum Humko</strong></span>
+    <span style="color: #ff82bb; font-size: 11px;">(Check device volume 🔊)</span>
   </div>
 
   <main class="container" style="flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 85vh;">
@@ -431,28 +444,97 @@
 
   <!-- Single-file embedded JavaScript logic -->
   <script>
-    // Audio Player logic
+    // Audio Player & Web Audio API Dual Engine
     const audio = document.getElementById('audio-player');
     const musicBtn = document.getElementById('music-toggle-btn');
     const playIcon = document.getElementById('play-icon');
     const musicBtnText = document.getElementById('music-btn-text');
     const eqContainer = document.getElementById('eq-container');
+    const audioToast = document.getElementById('audio-toast');
 
     let audioContext = null;
-    function resumeAudioContext() {
-      try {
-        if (!audioContext) {
-          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-          if (AudioContextClass) {
-            audioContext = new AudioContextClass();
-          }
+    let masterGain = null;
+    let decodedBuffer = null;
+    let bufferSource = null;
+    let bufferStartTime = 0;
+    let bufferPauseOffset = 0;
+    let isWebAudioPlaying = false;
+    let isAudioLoading = false;
+
+    function getAudioContext() {
+      if (!audioContext) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioContext = new AudioContextClass();
+          masterGain = audioContext.createGain();
+          masterGain.gain.setValueAtTime(1.0, audioContext.currentTime);
+          masterGain.connect(audioContext.destination);
         }
-        if (audioContext && audioContext.state === 'suspended') {
-          audioContext.resume();
-        }
-      } catch (e) {
-        console.warn('AudioContext resume notice:', e);
       }
+      if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+      return audioContext;
+    }
+
+    // Preload audio buffer for instantaneous, glitch-free Web Audio playback
+    async function preloadSongBuffer() {
+      try {
+        isAudioLoading = true;
+        const res = await fetch('/mile_ho_tum.mp3');
+        if (!res.ok) throw new Error('Network error loading audio');
+        const arrayBuf = await res.arrayBuffer();
+        const ctx = getAudioContext();
+        if (ctx) {
+          decodedBuffer = await ctx.decodeAudioData(arrayBuf);
+          console.log('Audio buffer successfully decoded for Web Audio API');
+        }
+      } catch (err) {
+        console.warn('Web Audio buffer preload notice (using standard audio pipeline):', err);
+      } finally {
+        isAudioLoading = false;
+      }
+    }
+
+    // Trigger preload in background
+    setTimeout(preloadSongBuffer, 100);
+
+    // Instant Speaker Test Chime (Guaranteed audible feedback on any device)
+    window.testSpeakerChime = function(e) {
+      if (e) e.stopPropagation();
+      const ctx = getAudioContext();
+      if (!ctx) return;
+
+      const now = ctx.currentTime;
+      const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 (Sweet Romantic Chime)
+      
+      freqs.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const chimeGain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+
+        chimeGain.gain.setValueAtTime(0, now + idx * 0.08);
+        chimeGain.gain.linearRampToValueAtTime(0.2, now + idx * 0.08 + 0.02);
+        chimeGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.8);
+
+        osc.connect(chimeGain);
+        chimeGain.connect(masterGain || ctx.destination);
+
+        osc.start(now + idx * 0.08);
+        osc.stop(now + idx * 0.08 + 0.85);
+      });
+
+      showToast('🔊 Sound test chime played! If heard, speaker is ready.');
+    };
+
+    function showToast(msg) {
+      if (!audioToast) return;
+      if (msg) audioToast.innerHTML = `<span>✨</span><span>${msg}</span>`;
+      audioToast.style.display = 'flex';
+      setTimeout(() => {
+        if (audioToast) audioToast.style.display = 'none';
+      }, 4500);
     }
 
     function updateAudioUI(isPlaying) {
@@ -462,7 +544,7 @@
       if (musicBtn) {
         if (isPlaying) {
           musicBtn.style.borderColor = 'rgba(255, 79, 154, 0.8)';
-          musicBtn.style.boxShadow = '0 0 15px rgba(255, 79, 154, 0.4)';
+          musicBtn.style.boxShadow = '0 0 20px rgba(255, 79, 154, 0.5)';
         } else {
           musicBtn.style.borderColor = 'rgba(255, 79, 154, 0.4)';
           musicBtn.style.boxShadow = '0 4px 15px rgba(255, 79, 154, 0.25)';
@@ -471,50 +553,84 @@
     }
 
     function playMusic() {
-      if (!audio) return;
-      resumeAudioContext();
-      audio.muted = false;
-      audio.volume = 1.0;
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          audio.muted = false;
-          audio.volume = 1.0;
+      const ctx = getAudioContext();
+
+      // Mode 1: Web Audio Buffer Source (Bypasses iframe media sandbox restrictions)
+      if (ctx && decodedBuffer) {
+        if (isWebAudioPlaying) return;
+        try {
+          if (bufferSource) {
+            try { bufferSource.stop(); } catch (_) {}
+          }
+          bufferSource = ctx.createBufferSource();
+          bufferSource.buffer = decodedBuffer;
+          bufferSource.loop = true;
+          bufferSource.connect(masterGain);
+          
+          bufferStartTime = ctx.currentTime - bufferPauseOffset;
+          bufferSource.start(0, bufferPauseOffset % decodedBuffer.duration);
+          isWebAudioPlaying = true;
           updateAudioUI(true);
-        }).catch(err => {
-          console.warn('Audio play prevented or awaiting user gesture:', err);
-          updateAudioUI(false);
-        });
+          showToast('Playing <strong>Mile Ho Tum Humko</strong> 💜 (Check device volume)');
+          return;
+        } catch (e) {
+          console.warn('Web Audio buffer start fallback to HTML audio:', e);
+        }
+      }
+
+      // Mode 2: HTML5 Audio Element Fallback
+      if (audio) {
+        audio.muted = false;
+        audio.volume = 1.0;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            audio.muted = false;
+            audio.volume = 1.0;
+            updateAudioUI(true);
+            showToast('Playing <strong>Mile Ho Tum Humko</strong> 💜');
+          }).catch(err => {
+            console.warn('Audio play notice:', err);
+            updateAudioUI(false);
+          });
+        }
       }
     }
 
     function pauseMusic() {
-      if (!audio) return;
-      audio.pause();
+      const ctx = getAudioContext();
+      if (isWebAudioPlaying && bufferSource && ctx) {
+        try {
+          bufferPauseOffset = (ctx.currentTime - bufferStartTime) % (decodedBuffer ? decodedBuffer.duration : 1);
+          bufferSource.stop();
+          bufferSource.disconnect();
+        } catch (_) {}
+        isWebAudioPlaying = false;
+      }
+      if (audio) {
+        audio.pause();
+      }
       updateAudioUI(false);
     }
 
     function toggleMusic(e) {
-      if (e) {
-        e.stopPropagation();
-      }
-      if (!audio) return;
-      if (audio.paused) {
-        playMusic();
-      } else {
+      if (e) e.stopPropagation();
+      getAudioContext();
+      if (isWebAudioPlaying || (audio && !audio.paused)) {
         pauseMusic();
+      } else {
+        playMusic();
       }
     }
 
     if (audio) {
       audio.addEventListener('play', () => updateAudioUI(true));
-      audio.addEventListener('pause', () => updateAudioUI(false));
+      audio.addEventListener('pause', () => {
+        if (!isWebAudioPlaying) updateAudioUI(false);
+      });
       audio.addEventListener('ended', () => {
         audio.currentTime = 0;
         playMusic();
-      });
-      audio.addEventListener('error', (e) => {
-        console.warn('Audio element encountered an error:', e);
       });
     }
 
@@ -527,7 +643,8 @@
     function handleFirstInteraction() {
       if (hasInteracted) return;
       hasInteracted = true;
-      if (audio && audio.paused) {
+      getAudioContext();
+      if (!isWebAudioPlaying && audio && audio.paused) {
         playMusic();
       }
     }
