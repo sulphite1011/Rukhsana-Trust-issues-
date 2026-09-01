@@ -207,30 +207,34 @@
   <div class="bg-blob-1"></div>
   <div class="bg-blob-2"></div>
 
-  <!-- Audio Element (Mile Ho Tum Humko) -->
-  <audio id="audio-player" loop preload="auto" playsinline>
-    <source src="/mile_ho_tum.mp3" type="audio/mpeg">
-    <source src="/mile_ho_tum.ogg" type="audio/ogg">
-    <source src="mile_ho_tum.mp3" type="audio/mpeg">
-  </audio>
+  <!-- Audio Elements (Mile Ho Tum Humko) -->
+  <audio id="audio-player" src="/mile_ho_tum.mp3" preload="auto" loop playsinline></audio>
 
   <!-- Floating Music & Sound Control Panel -->
-  <div style="position: fixed; top: 16px; right: 16px; z-index: 100; display: flex; align-items: center; gap: 8px;">
+  <div style="position: fixed; top: 16px; right: 16px; z-index: 100; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
     <!-- Main Music Button -->
-    <button id="music-toggle-btn" class="btn-secondary" style="padding: 10px 18px; font-size: 13px; border-color: rgba(255,79,154,0.5); background: rgba(15,3,25,0.9); box-shadow: 0 4px 18px rgba(255,79,154,0.3); cursor: pointer;">
-      <span id="play-icon" style="font-size: 14px;">▶</span>
-      <span id="music-btn-text" style="font-weight: 600; color: #ff82bb;">Play Song: Mile Ho Tum</span>
-      <div id="eq-container" style="display: none; align-items: flex-end; gap: 2px; height: 14px; margin-left: 4px;">
-        <span class="eq-bar-1" style="width: 3px; background: #ff4f9a; border-radius: 3px; display: inline-block;"></span>
-        <span class="eq-bar-2" style="width: 3px; background: #c084fc; border-radius: 3px; display: inline-block;"></span>
-        <span class="eq-bar-3" style="width: 3px; background: #ff82bb; border-radius: 3px; display: inline-block;"></span>
-      </div>
-    </button>
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <button id="music-toggle-btn" class="btn-secondary" style="padding: 10px 18px; font-size: 13px; border-color: rgba(255,79,154,0.6); background: rgba(15,3,25,0.92); box-shadow: 0 4px 20px rgba(255,79,154,0.35); cursor: pointer;">
+        <span id="play-icon" style="font-size: 14px;">▶</span>
+        <span id="music-btn-text" style="font-weight: 600; color: #ff82bb;">Play Song: Mile Ho Tum</span>
+        <div id="eq-container" style="display: none; align-items: flex-end; gap: 2px; height: 14px; margin-left: 4px;">
+          <span class="eq-bar-1" style="width: 3px; background: #ff4f9a; border-radius: 3px; display: inline-block;"></span>
+          <span class="eq-bar-2" style="width: 3px; background: #c084fc; border-radius: 3px; display: inline-block;"></span>
+          <span class="eq-bar-3" style="width: 3px; background: #ff82bb; border-radius: 3px; display: inline-block;"></span>
+        </div>
+      </button>
 
-    <!-- Speaker / Sound Test & Volume Button -->
-    <button id="btn-sound-test" class="btn-secondary" title="Test Speaker & Sound Output" style="padding: 10px 12px; font-size: 13px; background: rgba(15,3,25,0.9); border-color: rgba(140,82,255,0.4);" onclick="testSpeakerChime(event)">
-      <span>🔊</span>
-    </button>
+      <!-- Speaker / Sound Test Button -->
+      <button id="btn-sound-test" class="btn-secondary" title="Test Speaker & Sound Output" style="padding: 10px 14px; font-size: 14px; background: rgba(15,3,25,0.92); border-color: rgba(140,82,255,0.5); cursor: pointer;" onclick="testSpeakerChime(event)">
+        <span>🔊</span>
+      </button>
+    </div>
+
+    <!-- Mini Audio Time & Volume Slider -->
+    <div id="mini-player-bar" style="display: flex; align-items: center; gap: 8px; background: rgba(15,3,25,0.85); padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #d8b4fe;">
+      <span id="audio-time-display">0:00 / 4:00</span>
+      <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="1" style="width: 60px; accent-color: #ff4f9a; cursor: pointer;" title="Volume" oninput="changeVolume(this.value)">
+    </div>
   </div>
 
   <!-- Floating Audio Status Notice (appears when playing) -->
@@ -451,6 +455,8 @@
     const musicBtnText = document.getElementById('music-btn-text');
     const eqContainer = document.getElementById('eq-container');
     const audioToast = document.getElementById('audio-toast');
+    const timeDisplay = document.getElementById('audio-time-display');
+    const volumeSlider = document.getElementById('volume-slider');
 
     let audioContext = null;
     let masterGain = null;
@@ -459,7 +465,7 @@
     let bufferStartTime = 0;
     let bufferPauseOffset = 0;
     let isWebAudioPlaying = false;
-    let isAudioLoading = false;
+    let currentVolume = 1.0;
 
     function getAudioContext() {
       if (!audioContext) {
@@ -467,7 +473,7 @@
         if (AudioContextClass) {
           audioContext = new AudioContextClass();
           masterGain = audioContext.createGain();
-          masterGain.gain.setValueAtTime(1.0, audioContext.currentTime);
+          masterGain.gain.setValueAtTime(currentVolume, audioContext.currentTime);
           masterGain.connect(audioContext.destination);
         }
       }
@@ -477,36 +483,49 @@
       return audioContext;
     }
 
-    // Preload audio buffer for instantaneous, glitch-free Web Audio playback
+    // Volume changer
+    window.changeVolume = function(val) {
+      currentVolume = parseFloat(val);
+      if (audio) audio.volume = currentVolume;
+      if (masterGain && audioContext) {
+        masterGain.gain.setValueAtTime(currentVolume, audioContext.currentTime);
+      }
+    };
+
+    // Format seconds into M:SS
+    function formatTime(sec) {
+      if (isNaN(sec) || sec < 0) return '0:00';
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    // Preload audio buffer for instantaneous Web Audio playback
     async function preloadSongBuffer() {
       try {
-        isAudioLoading = true;
         const res = await fetch('/mile_ho_tum.mp3');
         if (!res.ok) throw new Error('Network error loading audio');
         const arrayBuf = await res.arrayBuffer();
         const ctx = getAudioContext();
         if (ctx) {
           decodedBuffer = await ctx.decodeAudioData(arrayBuf);
-          console.log('Audio buffer successfully decoded for Web Audio API');
+          console.log('Web Audio buffer decoded successfully');
         }
       } catch (err) {
-        console.warn('Web Audio buffer preload notice (using standard audio pipeline):', err);
-      } finally {
-        isAudioLoading = false;
+        console.warn('Buffer preload note:', err);
       }
     }
 
-    // Trigger preload in background
     setTimeout(preloadSongBuffer, 100);
 
-    // Instant Speaker Test Chime (Guaranteed audible feedback on any device)
+    // Instant Speaker Test Chime
     window.testSpeakerChime = function(e) {
       if (e) e.stopPropagation();
       const ctx = getAudioContext();
       if (!ctx) return;
 
       const now = ctx.currentTime;
-      const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 (Sweet Romantic Chime)
+      const freqs = [523.25, 659.25, 783.99, 1046.50];
       
       freqs.forEach((freq, idx) => {
         const osc = ctx.createOscillator();
@@ -515,7 +534,7 @@
         osc.frequency.setValueAtTime(freq, now + idx * 0.08);
 
         chimeGain.gain.setValueAtTime(0, now + idx * 0.08);
-        chimeGain.gain.linearRampToValueAtTime(0.2, now + idx * 0.08 + 0.02);
+        chimeGain.gain.linearRampToValueAtTime(0.35 * currentVolume, now + idx * 0.08 + 0.02);
         chimeGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.8);
 
         osc.connect(chimeGain);
@@ -525,7 +544,7 @@
         osc.stop(now + idx * 0.08 + 0.85);
       });
 
-      showToast('🔊 Sound test chime played! If heard, speaker is ready.');
+      showToast('🔊 Sound test chime playing!');
     };
 
     function showToast(msg) {
@@ -552,10 +571,31 @@
       }
     }
 
+    // Time ticker for UI
+    let timeTickerInterval = null;
+    function startTimeTicker() {
+      if (timeTickerInterval) clearInterval(timeTickerInterval);
+      timeTickerInterval = setInterval(() => {
+        if (isWebAudioPlaying && audioContext && decodedBuffer) {
+          const elapsed = (audioContext.currentTime - bufferStartTime) % decodedBuffer.duration;
+          if (timeDisplay) timeDisplay.textContent = `${formatTime(elapsed)} / ${formatTime(decodedBuffer.duration)}`;
+        } else if (audio && !audio.paused) {
+          if (timeDisplay) timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration || 240)}`;
+        }
+      }, 500);
+    }
+
+    function stopTimeTicker() {
+      if (timeTickerInterval) {
+        clearInterval(timeTickerInterval);
+        timeTickerInterval = null;
+      }
+    }
+
     function playMusic() {
       const ctx = getAudioContext();
 
-      // Mode 1: Web Audio Buffer Source (Bypasses iframe media sandbox restrictions)
+      // Mode 1: Web Audio Buffer Source
       if (ctx && decodedBuffer) {
         if (isWebAudioPlaying) return;
         try {
@@ -571,23 +611,25 @@
           bufferSource.start(0, bufferPauseOffset % decodedBuffer.duration);
           isWebAudioPlaying = true;
           updateAudioUI(true);
+          startTimeTicker();
           showToast('Playing <strong>Mile Ho Tum Humko</strong> 💜 (Check device volume)');
           return;
         } catch (e) {
-          console.warn('Web Audio buffer start fallback to HTML audio:', e);
+          console.warn('Web Audio buffer start error:', e);
         }
       }
 
       // Mode 2: HTML5 Audio Element Fallback
       if (audio) {
         audio.muted = false;
-        audio.volume = 1.0;
+        audio.volume = currentVolume;
         const playPromise = audio.play();
         if (playPromise !== undefined) {
           playPromise.then(() => {
             audio.muted = false;
-            audio.volume = 1.0;
+            audio.volume = currentVolume;
             updateAudioUI(true);
+            startTimeTicker();
             showToast('Playing <strong>Mile Ho Tum Humko</strong> 💜');
           }).catch(err => {
             console.warn('Audio play notice:', err);
@@ -610,6 +652,7 @@
       if (audio) {
         audio.pause();
       }
+      stopTimeTicker();
       updateAudioUI(false);
     }
 
@@ -624,9 +667,20 @@
     }
 
     if (audio) {
-      audio.addEventListener('play', () => updateAudioUI(true));
+      audio.addEventListener('play', () => {
+        updateAudioUI(true);
+        startTimeTicker();
+      });
       audio.addEventListener('pause', () => {
-        if (!isWebAudioPlaying) updateAudioUI(false);
+        if (!isWebAudioPlaying) {
+          updateAudioUI(false);
+          stopTimeTicker();
+        }
+      });
+      audio.addEventListener('timeupdate', () => {
+        if (!isWebAudioPlaying && timeDisplay) {
+          timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration || 240)}`;
+        }
       });
       audio.addEventListener('ended', () => {
         audio.currentTime = 0;
@@ -638,7 +692,7 @@
       musicBtn.addEventListener('click', toggleMusic);
     }
 
-    // Global first interaction auto-unlocker (browser autoplay policy)
+    // Global first interaction auto-unlocker
     let hasInteracted = false;
     function handleFirstInteraction() {
       if (hasInteracted) return;
