@@ -208,13 +208,17 @@
   <div class="bg-blob-2"></div>
 
   <!-- Audio Element (Mile Ho Tum Humko) -->
-  <audio id="audio-player" loop src="/mile_ho_tum.mp3" preload="auto"></audio>
+  <audio id="audio-player" loop preload="auto" playsinline>
+    <source src="/mile_ho_tum.mp3" type="audio/mpeg">
+    <source src="mile_ho_tum.mp3" type="audio/mpeg">
+    <source src="./mile_ho_tum.mp3" type="audio/mpeg">
+  </audio>
 
   <!-- Floating Music Toggle Button -->
   <div style="position: fixed; top: 16px; right: 20px; z-index: 100;">
-    <button id="music-toggle-btn" class="btn-secondary" style="padding: 10px 18px; font-size: 13px; border-color: rgba(255,79,154,0.4); background: rgba(15,3,25,0.75);">
+    <button id="music-toggle-btn" class="btn-secondary" style="padding: 10px 18px; font-size: 13px; border-color: rgba(255,79,154,0.5); background: rgba(15,3,25,0.85); box-shadow: 0 4px 15px rgba(255,79,154,0.25);">
       <span id="play-icon" style="font-size: 14px;">▶</span>
-      <span style="font-weight: 600; color: #ff82bb;">Mile Ho Tum Humko</span>
+      <span id="music-btn-text" style="font-weight: 600; color: #ff82bb;">Play Song: Mile Ho Tum</span>
       <div id="eq-container" style="display: none; align-items: flex-end; gap: 2px; height: 14px; margin-left: 4px;">
         <span class="eq-bar-1" style="width: 3px; background: #ff4f9a; border-radius: 3px; display: inline-block;"></span>
         <span class="eq-bar-2" style="width: 3px; background: #c084fc; border-radius: 3px; display: inline-block;"></span>
@@ -431,30 +435,84 @@
     const audio = document.getElementById('audio-player');
     const musicBtn = document.getElementById('music-toggle-btn');
     const playIcon = document.getElementById('play-icon');
+    const musicBtnText = document.getElementById('music-btn-text');
     const eqContainer = document.getElementById('eq-container');
 
-    let isPlaying = false;
-
-    function toggleMusic() {
-      if (audio.paused) {
-        audio.play().then(() => {
-          isPlaying = true;
-          playIcon.textContent = '⏸';
-          eqContainer.style.display = 'inline-flex';
-        }).catch(err => {
-          console.log('Autoplay policy caught:', err);
-        });
-      } else {
-        audio.pause();
-        isPlaying = false;
-        playIcon.textContent = '▶';
-        eqContainer.style.display = 'none';
+    function updateAudioUI(isPlaying) {
+      if (playIcon) playIcon.textContent = isPlaying ? '⏸' : '▶';
+      if (musicBtnText) musicBtnText.textContent = isPlaying ? 'Playing: Mile Ho Tum' : 'Play Song: Mile Ho Tum';
+      if (eqContainer) eqContainer.style.display = isPlaying ? 'inline-flex' : 'none';
+      if (musicBtn) {
+        if (isPlaying) {
+          musicBtn.style.borderColor = 'rgba(255, 79, 154, 0.8)';
+          musicBtn.style.boxShadow = '0 0 15px rgba(255, 79, 154, 0.4)';
+        } else {
+          musicBtn.style.borderColor = 'rgba(255, 79, 154, 0.4)';
+          musicBtn.style.boxShadow = '0 4px 15px rgba(255, 79, 154, 0.25)';
+        }
       }
+    }
+
+    function playMusic() {
+      if (!audio) return;
+      audio.volume = 1.0;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          updateAudioUI(true);
+        }).catch(err => {
+          console.warn('Audio play prevented or awaiting user gesture:', err);
+          updateAudioUI(false);
+        });
+      }
+    }
+
+    function pauseMusic() {
+      if (!audio) return;
+      audio.pause();
+      updateAudioUI(false);
+    }
+
+    function toggleMusic(e) {
+      if (e) {
+        e.stopPropagation();
+      }
+      if (!audio) return;
+      if (audio.paused) {
+        playMusic();
+      } else {
+        pauseMusic();
+      }
+    }
+
+    if (audio) {
+      audio.addEventListener('play', () => updateAudioUI(true));
+      audio.addEventListener('pause', () => updateAudioUI(false));
+      audio.addEventListener('ended', () => {
+        audio.currentTime = 0;
+        playMusic();
+      });
+      audio.addEventListener('error', (e) => {
+        console.warn('Audio element encountered an error:', e);
+      });
     }
 
     if (musicBtn) {
       musicBtn.addEventListener('click', toggleMusic);
     }
+
+    // Global first interaction auto-unlocker (browser autoplay policy)
+    let hasInteracted = false;
+    function handleFirstInteraction() {
+      if (hasInteracted) return;
+      hasInteracted = true;
+      if (audio && audio.paused) {
+        playMusic();
+      }
+    }
+
+    document.addEventListener('click', handleFirstInteraction, { once: true });
+    document.addEventListener('touchstart', handleFirstInteraction, { once: true });
 
     // Step Navigation
     const steps = ['step-intro', 'step-story', 'step-trust', 'step-question', 'step-celebration'];
@@ -505,7 +563,7 @@
     const btnStart = document.getElementById('btn-start');
     if (btnStart) {
       btnStart.addEventListener('click', () => {
-        if (audio.paused) toggleMusic();
+        if (audio && audio.paused) playMusic();
         showStep(1);
       });
     }
@@ -646,7 +704,7 @@
       yesBtn.addEventListener('click', () => {
         showStep(4);
         fireConfetti();
-        if (audio.paused) toggleMusic();
+        if (audio && audio.paused) playMusic();
       });
     }
 
