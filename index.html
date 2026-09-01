@@ -210,8 +210,8 @@
   <!-- Audio Element (Mile Ho Tum Humko) -->
   <audio id="audio-player" loop preload="auto" playsinline>
     <source src="/mile_ho_tum.mp3" type="audio/mpeg">
+    <source src="/mile_ho_tum.ogg" type="audio/ogg">
     <source src="mile_ho_tum.mp3" type="audio/mpeg">
-    <source src="./mile_ho_tum.mp3" type="audio/mpeg">
   </audio>
 
   <!-- Floating Music Toggle Button -->
@@ -438,6 +438,23 @@
     const musicBtnText = document.getElementById('music-btn-text');
     const eqContainer = document.getElementById('eq-container');
 
+    let audioContext = null;
+    function resumeAudioContext() {
+      try {
+        if (!audioContext) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            audioContext = new AudioContextClass();
+          }
+        }
+        if (audioContext && audioContext.state === 'suspended') {
+          audioContext.resume();
+        }
+      } catch (e) {
+        console.warn('AudioContext resume notice:', e);
+      }
+    }
+
     function updateAudioUI(isPlaying) {
       if (playIcon) playIcon.textContent = isPlaying ? '⏸' : '▶';
       if (musicBtnText) musicBtnText.textContent = isPlaying ? 'Playing: Mile Ho Tum' : 'Play Song: Mile Ho Tum';
@@ -455,10 +472,14 @@
 
     function playMusic() {
       if (!audio) return;
+      resumeAudioContext();
+      audio.muted = false;
       audio.volume = 1.0;
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise.then(() => {
+          audio.muted = false;
+          audio.volume = 1.0;
           updateAudioUI(true);
         }).catch(err => {
           console.warn('Audio play prevented or awaiting user gesture:', err);
