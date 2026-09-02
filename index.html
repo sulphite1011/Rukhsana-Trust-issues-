@@ -4,17 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rukh... Rukhsana? 💜</title>
-  <meta name="description" content="An interactive trust story website celebrating the TikTok inbox Assalam-o-Alaikum, the Rukh to Rukhsana name guess, dynamic trust meter to 100%, playful interactive questions, and the romantic song Mile Ho Tum Humko." />
+  <meta name="description" content="An interactive trust story celebrating the TikTok inbox Assalam-o-Alaikum, the Rukh to Rukhsana name guess, dynamic trust meter to 100%, playful questions, and the romantic song Mile Ho Tum Humko." />
   <meta property="og:title" content="Rukh... Rukhsana? 💜" />
-  <meta property="og:description" content="An interactive trust story website celebrating the TikTok inbox Assalam-o-Alaikum, the Rukh to Rukhsana name guess, dynamic trust meter to 100%, playful interactive questions, and the romantic song Mile Ho Tum Humko." />
+  <meta property="og:description" content="An interactive trust story celebrating the TikTok inbox Assalam-o-Alaikum, the Rukh to Rukhsana name guess, dynamic trust meter to 100%, playful questions, and the romantic song Mile Ho Tum Humko." />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
-  
+
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
+
   <!-- Canvas Confetti CDN -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
 
@@ -43,7 +43,7 @@
       font-family: 'Dancing Script', cursive;
     }
 
-    /* Ambient glow blobs in background */
+    /* Ambient background gradient glows */
     .bg-blob-1 {
       position: fixed;
       top: -12%;
@@ -207,13 +207,13 @@
   <div class="bg-blob-1"></div>
   <div class="bg-blob-2"></div>
 
-  <!-- Audio Elements (Mile Ho Tum Humko) -->
-  <audio id="audio-player" src="/mile_ho_tum.mp3" preload="auto" loop playsinline></audio>
+  <!-- Audio Player Element (Standard HTML5 Audio) -->
+  <audio id="audio-player" src="mile_ho_tum.mp3" preload="auto" loop playsinline></audio>
 
-  <!-- Floating Music & Sound Control Panel -->
-  <div style="position: fixed; top: 16px; right: 16px; z-index: 100; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-    <!-- Main Music Button -->
-    <div style="display: flex; align-items: center; gap: 6px;">
+  <!-- Floating Music Controller Header Bar -->
+  <header style="position: fixed; top: 16px; right: 16px; z-index: 100; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+    <!-- Main Toggle Button -->
+    <div style="display: flex; align-items: center; gap: 8px;">
       <button id="music-toggle-btn" class="btn-secondary" style="padding: 10px 18px; font-size: 13px; border-color: rgba(255,79,154,0.6); background: rgba(15,3,25,0.92); box-shadow: 0 4px 20px rgba(255,79,154,0.35); cursor: pointer;">
         <span id="play-icon" style="font-size: 14px;">▶</span>
         <span id="music-btn-text" style="font-weight: 600; color: #ff82bb;">Play Song: Mile Ho Tum</span>
@@ -223,30 +223,26 @@
           <span class="eq-bar-3" style="width: 3px; background: #ff82bb; border-radius: 3px; display: inline-block;"></span>
         </div>
       </button>
-
-      <!-- Speaker / Sound Test Button -->
-      <button id="btn-sound-test" class="btn-secondary" title="Test Speaker & Sound Output" style="padding: 10px 14px; font-size: 14px; background: rgba(15,3,25,0.92); border-color: rgba(140,82,255,0.5); cursor: pointer;" onclick="testSpeakerChime(event)">
-        <span>🔊</span>
-      </button>
     </div>
 
-    <!-- Mini Audio Time & Volume Slider -->
-    <div id="mini-player-bar" style="display: flex; align-items: center; gap: 8px; background: rgba(15,3,25,0.85); padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #d8b4fe;">
-      <span id="audio-time-display">0:00 / 4:00</span>
-      <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="1" style="width: 60px; accent-color: #ff4f9a; cursor: pointer;" title="Volume" oninput="changeVolume(this.value)">
+    <!-- Mini Progress / Volume Bar -->
+    <div id="mini-audio-bar" style="display: flex; align-items: center; gap: 10px; background: rgba(15,3,25,0.88); padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); font-size: 11px; color: #d8b4fe;">
+      <span id="audio-time-label">0:00 / 4:00</span>
+      <span style="opacity: 0.5;">|</span>
+      <span>🔊</span>
+      <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="1" style="width: 65px; accent-color: #ff4f9a; cursor: pointer;" title="Adjust Volume" />
     </div>
-  </div>
+  </header>
 
-  <!-- Floating Audio Status Notice (appears when playing) -->
-  <div id="audio-toast" style="position: fixed; bottom: 20px; right: 20px; z-index: 99; padding: 10px 18px; border-radius: 999px; background: rgba(20,4,35,0.92); border: 1px solid rgba(255,79,154,0.4); color: #f3e8ff; font-size: 12px; display: none; align-items: center; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); backdrop-filter: blur(10px); animation: fadeIn 0.3s ease;">
+  <!-- Audio Toast Notification -->
+  <div id="audio-toast" style="position: fixed; bottom: 20px; right: 20px; z-index: 99; padding: 10px 18px; border-radius: 999px; background: rgba(20,4,35,0.92); border: 1px solid rgba(255,79,154,0.4); color: #f3e8ff; font-size: 12px; display: none; align-items: center; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); backdrop-filter: blur(10px);">
     <span>🎵</span>
-    <span>Playing <strong>Mile Ho Tum Humko</strong></span>
-    <span style="color: #ff82bb; font-size: 11px;">(Check device volume 🔊)</span>
+    <span>Playing <strong>Mile Ho Tum Humko</strong> 💜</span>
   </div>
 
   <main class="container" style="flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 85vh;">
     
-    <!-- Progress Indicator -->
+    <!-- Progress Indicator Dots -->
     <div id="progress-dots" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 24px;">
       <div class="dot" id="dot-0" style="height: 6px; width: 32px; border-radius: 999px; background: linear-gradient(to right, #ff4f9a, #8c52ff);"></div>
       <div class="dot" id="dot-1" style="height: 6px; width: 8px; border-radius: 999px; background: rgba(255,255,255,0.2);"></div>
@@ -291,7 +287,7 @@
         <p style="color: #d8b4fe; font-size: 14px; margin-bottom: 24px;">From a TikTok inbox message to an unbreakable bond</p>
 
         <div style="display: flex; flex-direction: column; gap: 16px; text-align: left; margin-bottom: 24px;">
-          <!-- Card 1 -->
+          <!-- Story Card 1 -->
           <div style="padding: 18px; border-radius: 18px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); display: flex; gap: 14px;">
             <span style="font-size: 24px;">📩</span>
             <div>
@@ -302,7 +298,7 @@
             </div>
           </div>
 
-          <!-- Card 2 -->
+          <!-- Story Card 2 -->
           <div style="padding: 18px; border-radius: 18px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); display: flex; gap: 14px;">
             <span style="font-size: 24px;">🎯</span>
             <div>
@@ -313,7 +309,7 @@
             </div>
           </div>
 
-          <!-- Card 3 -->
+          <!-- Story Card 3 -->
           <div style="padding: 18px; border-radius: 18px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); display: flex; gap: 14px;">
             <span style="font-size: 24px;">🤝</span>
             <div>
@@ -446,53 +442,18 @@
     Rukh... Rukhsana? 💜 • A Story of Trust
   </footer>
 
-  <!-- Single-file embedded JavaScript logic -->
+  <!-- Audio Controller & App Script -->
   <script>
-    // Audio Player & Web Audio API Dual Engine
+    // Audio Player Elements
     const audio = document.getElementById('audio-player');
     const musicBtn = document.getElementById('music-toggle-btn');
     const playIcon = document.getElementById('play-icon');
     const musicBtnText = document.getElementById('music-btn-text');
     const eqContainer = document.getElementById('eq-container');
     const audioToast = document.getElementById('audio-toast');
-    const timeDisplay = document.getElementById('audio-time-display');
+    const timeLabel = document.getElementById('audio-time-label');
     const volumeSlider = document.getElementById('volume-slider');
 
-    let audioContext = null;
-    let masterGain = null;
-    let decodedBuffer = null;
-    let bufferSource = null;
-    let bufferStartTime = 0;
-    let bufferPauseOffset = 0;
-    let isWebAudioPlaying = false;
-    let currentVolume = 1.0;
-
-    function getAudioContext() {
-      if (!audioContext) {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (AudioContextClass) {
-          audioContext = new AudioContextClass();
-          masterGain = audioContext.createGain();
-          masterGain.gain.setValueAtTime(currentVolume, audioContext.currentTime);
-          masterGain.connect(audioContext.destination);
-        }
-      }
-      if (audioContext && audioContext.state === 'suspended') {
-        audioContext.resume();
-      }
-      return audioContext;
-    }
-
-    // Volume changer
-    window.changeVolume = function(val) {
-      currentVolume = parseFloat(val);
-      if (audio) audio.volume = currentVolume;
-      if (masterGain && audioContext) {
-        masterGain.gain.setValueAtTime(currentVolume, audioContext.currentTime);
-      }
-    };
-
-    // Format seconds into M:SS
     function formatTime(sec) {
       if (isNaN(sec) || sec < 0) return '0:00';
       const m = Math.floor(sec / 60);
@@ -500,60 +461,13 @@
       return `${m}:${s < 10 ? '0' : ''}${s}`;
     }
 
-    // Preload audio buffer for instantaneous Web Audio playback
-    async function preloadSongBuffer() {
-      try {
-        const res = await fetch('/mile_ho_tum.mp3');
-        if (!res.ok) throw new Error('Network error loading audio');
-        const arrayBuf = await res.arrayBuffer();
-        const ctx = getAudioContext();
-        if (ctx) {
-          decodedBuffer = await ctx.decodeAudioData(arrayBuf);
-          console.log('Web Audio buffer decoded successfully');
-        }
-      } catch (err) {
-        console.warn('Buffer preload note:', err);
-      }
-    }
-
-    setTimeout(preloadSongBuffer, 100);
-
-    // Instant Speaker Test Chime
-    window.testSpeakerChime = function(e) {
-      if (e) e.stopPropagation();
-      const ctx = getAudioContext();
-      if (!ctx) return;
-
-      const now = ctx.currentTime;
-      const freqs = [523.25, 659.25, 783.99, 1046.50];
-      
-      freqs.forEach((freq, idx) => {
-        const osc = ctx.createOscillator();
-        const chimeGain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, now + idx * 0.08);
-
-        chimeGain.gain.setValueAtTime(0, now + idx * 0.08);
-        chimeGain.gain.linearRampToValueAtTime(0.35 * currentVolume, now + idx * 0.08 + 0.02);
-        chimeGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.8);
-
-        osc.connect(chimeGain);
-        chimeGain.connect(masterGain || ctx.destination);
-
-        osc.start(now + idx * 0.08);
-        osc.stop(now + idx * 0.08 + 0.85);
-      });
-
-      showToast('🔊 Sound test chime playing!');
-    };
-
     function showToast(msg) {
       if (!audioToast) return;
-      if (msg) audioToast.innerHTML = `<span>✨</span><span>${msg}</span>`;
+      if (msg) audioToast.innerHTML = `<span>🎵</span><span>${msg}</span>`;
       audioToast.style.display = 'flex';
       setTimeout(() => {
         if (audioToast) audioToast.style.display = 'none';
-      }, 4500);
+      }, 3500);
     }
 
     function updateAudioUI(isPlaying) {
@@ -562,149 +476,82 @@
       if (eqContainer) eqContainer.style.display = isPlaying ? 'inline-flex' : 'none';
       if (musicBtn) {
         if (isPlaying) {
-          musicBtn.style.borderColor = 'rgba(255, 79, 154, 0.8)';
+          musicBtn.style.borderColor = 'rgba(255, 79, 154, 0.9)';
           musicBtn.style.boxShadow = '0 0 20px rgba(255, 79, 154, 0.5)';
         } else {
-          musicBtn.style.borderColor = 'rgba(255, 79, 154, 0.4)';
-          musicBtn.style.boxShadow = '0 4px 15px rgba(255, 79, 154, 0.25)';
+          musicBtn.style.borderColor = 'rgba(255, 79, 154, 0.6)';
+          musicBtn.style.boxShadow = '0 4px 20px rgba(255, 79, 154, 0.35)';
         }
       }
     }
 
-    // Time ticker for UI
-    let timeTickerInterval = null;
-    function startTimeTicker() {
-      if (timeTickerInterval) clearInterval(timeTickerInterval);
-      timeTickerInterval = setInterval(() => {
-        if (isWebAudioPlaying && audioContext && decodedBuffer) {
-          const elapsed = (audioContext.currentTime - bufferStartTime) % decodedBuffer.duration;
-          if (timeDisplay) timeDisplay.textContent = `${formatTime(elapsed)} / ${formatTime(decodedBuffer.duration)}`;
-        } else if (audio && !audio.paused) {
-          if (timeDisplay) timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration || 240)}`;
-        }
-      }, 500);
-    }
-
-    function stopTimeTicker() {
-      if (timeTickerInterval) {
-        clearInterval(timeTickerInterval);
-        timeTickerInterval = null;
-      }
-    }
-
-    function playMusic() {
-      const ctx = getAudioContext();
-
-      // Mode 1: Web Audio Buffer Source
-      if (ctx && decodedBuffer) {
-        if (isWebAudioPlaying) return;
-        try {
-          if (bufferSource) {
-            try { bufferSource.stop(); } catch (_) {}
-          }
-          bufferSource = ctx.createBufferSource();
-          bufferSource.buffer = decodedBuffer;
-          bufferSource.loop = true;
-          bufferSource.connect(masterGain);
-          
-          bufferStartTime = ctx.currentTime - bufferPauseOffset;
-          bufferSource.start(0, bufferPauseOffset % decodedBuffer.duration);
-          isWebAudioPlaying = true;
+    // Play/Pause Functions
+    function playAudio() {
+      if (!audio) return;
+      audio.muted = false;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
           updateAudioUI(true);
-          startTimeTicker();
-          showToast('Playing <strong>Mile Ho Tum Humko</strong> 💜 (Check device volume)');
-          return;
-        } catch (e) {
-          console.warn('Web Audio buffer start error:', e);
-        }
-      }
-
-      // Mode 2: HTML5 Audio Element Fallback
-      if (audio) {
-        audio.muted = false;
-        audio.volume = currentVolume;
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.then(() => {
-            audio.muted = false;
-            audio.volume = currentVolume;
-            updateAudioUI(true);
-            startTimeTicker();
-            showToast('Playing <strong>Mile Ho Tum Humko</strong> 💜');
-          }).catch(err => {
-            console.warn('Audio play notice:', err);
-            updateAudioUI(false);
-          });
-        }
+          showToast('Playing <strong>Mile Ho Tum Humko</strong> 💜');
+        }).catch(err => {
+          console.warn('Audio play request:', err);
+          updateAudioUI(false);
+        });
       }
     }
 
-    function pauseMusic() {
-      const ctx = getAudioContext();
-      if (isWebAudioPlaying && bufferSource && ctx) {
-        try {
-          bufferPauseOffset = (ctx.currentTime - bufferStartTime) % (decodedBuffer ? decodedBuffer.duration : 1);
-          bufferSource.stop();
-          bufferSource.disconnect();
-        } catch (_) {}
-        isWebAudioPlaying = false;
-      }
-      if (audio) {
-        audio.pause();
-      }
-      stopTimeTicker();
+    function pauseAudio() {
+      if (!audio) return;
+      audio.pause();
       updateAudioUI(false);
     }
 
-    function toggleMusic(e) {
+    function toggleAudio(e) {
       if (e) e.stopPropagation();
-      getAudioContext();
-      if (isWebAudioPlaying || (audio && !audio.paused)) {
-        pauseMusic();
+      if (!audio) return;
+      if (audio.paused) {
+        playAudio();
       } else {
-        playMusic();
+        pauseAudio();
       }
     }
 
+    if (musicBtn) {
+      musicBtn.addEventListener('click', toggleAudio);
+    }
+
+    if (volumeSlider && audio) {
+      volumeSlider.addEventListener('input', (e) => {
+        audio.volume = parseFloat(e.target.value);
+      });
+    }
+
     if (audio) {
-      audio.addEventListener('play', () => {
-        updateAudioUI(true);
-        startTimeTicker();
-      });
-      audio.addEventListener('pause', () => {
-        if (!isWebAudioPlaying) {
-          updateAudioUI(false);
-          stopTimeTicker();
-        }
-      });
+      audio.addEventListener('play', () => updateAudioUI(true));
+      audio.addEventListener('pause', () => updateAudioUI(false));
       audio.addEventListener('timeupdate', () => {
-        if (!isWebAudioPlaying && timeDisplay) {
-          timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration || 240)}`;
+        if (timeLabel) {
+          timeLabel.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration || 240)}`;
         }
       });
       audio.addEventListener('ended', () => {
         audio.currentTime = 0;
-        playMusic();
+        playAudio();
       });
     }
 
-    if (musicBtn) {
-      musicBtn.addEventListener('click', toggleMusic);
-    }
-
-    // Global first interaction auto-unlocker
-    let hasInteracted = false;
-    function handleFirstInteraction() {
-      if (hasInteracted) return;
-      hasInteracted = true;
-      getAudioContext();
-      if (!isWebAudioPlaying && audio && audio.paused) {
-        playMusic();
+    // Auto-unlock on first tap or click anywhere on page
+    let userHasInteracted = false;
+    function handleFirstUserTouch() {
+      if (userHasInteracted) return;
+      userHasInteracted = true;
+      if (audio && audio.paused) {
+        playAudio();
       }
     }
-
-    document.addEventListener('click', handleFirstInteraction, { once: true });
-    document.addEventListener('touchstart', handleFirstInteraction, { once: true });
+    document.addEventListener('click', handleFirstUserTouch, { once: true });
+    document.addEventListener('touchstart', handleFirstUserTouch, { once: true });
 
     // Step Navigation
     const steps = ['step-intro', 'step-story', 'step-trust', 'step-question', 'step-celebration'];
@@ -755,7 +602,7 @@
     const btnStart = document.getElementById('btn-start');
     if (btnStart) {
       btnStart.addEventListener('click', () => {
-        if (audio && audio.paused) playMusic();
+        if (audio && audio.paused) playAudio();
         showStep(1);
       });
     }
@@ -787,7 +634,7 @@
 
       let current = 30;
       const target = 100;
-      const duration = 2200;
+      const duration = 2000;
       const startTime = performance.now();
 
       function animate(time) {
@@ -896,7 +743,7 @@
       yesBtn.addEventListener('click', () => {
         showStep(4);
         fireConfetti();
-        if (audio && audio.paused) playMusic();
+        if (audio && audio.paused) playAudio();
       });
     }
 
