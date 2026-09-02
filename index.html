@@ -208,31 +208,23 @@
   <div class="bg-blob-2"></div>
 
   <!-- Audio Player Element (Standard HTML5 Audio) -->
-  <audio id="audio-player" src="mile_ho_tum.mp3" preload="auto" loop playsinline></audio>
+  <audio id="audio-player" preload="auto" loop playsinline>
+    <source src="mile_ho_tum.mp3" type="audio/mpeg">
+    <source src="/mile_ho_tum.mp3" type="audio/mpeg">
+  </audio>
 
-  <!-- Floating Music Controller Header Bar -->
-  <header style="position: fixed; top: 16px; right: 16px; z-index: 100; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-    <!-- Main Toggle Button -->
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <button id="music-toggle-btn" class="btn-secondary" style="padding: 10px 18px; font-size: 13px; border-color: rgba(255,79,154,0.6); background: rgba(15,3,25,0.92); box-shadow: 0 4px 20px rgba(255,79,154,0.35); cursor: pointer;">
-        <span id="play-icon" style="font-size: 14px;">▶</span>
-        <span id="music-btn-text" style="font-weight: 600; color: #ff82bb;">Play Song: Mile Ho Tum</span>
-        <div id="eq-container" style="display: none; align-items: flex-end; gap: 2px; height: 14px; margin-left: 4px;">
-          <span class="eq-bar-1" style="width: 3px; background: #ff4f9a; border-radius: 3px; display: inline-block;"></span>
-          <span class="eq-bar-2" style="width: 3px; background: #c084fc; border-radius: 3px; display: inline-block;"></span>
-          <span class="eq-bar-3" style="width: 3px; background: #ff82bb; border-radius: 3px; display: inline-block;"></span>
-        </div>
-      </button>
-    </div>
-
-    <!-- Mini Progress / Volume Bar -->
-    <div id="mini-audio-bar" style="display: flex; align-items: center; gap: 10px; background: rgba(15,3,25,0.88); padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); font-size: 11px; color: #d8b4fe;">
-      <span id="audio-time-label">0:00 / 4:00</span>
-      <span style="opacity: 0.5;">|</span>
-      <span>🔊</span>
-      <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="1" style="width: 65px; accent-color: #ff4f9a; cursor: pointer;" title="Adjust Volume" />
-    </div>
-  </header>
+  <!-- Floating Music Controller Button -->
+  <div style="position: fixed; top: 16px; right: 16px; z-index: 9999;">
+    <button id="music-toggle-btn" class="btn-secondary" style="padding: 10px 18px; font-size: 13px; border-color: rgba(255,79,154,0.6); background: rgba(15,3,25,0.95); box-shadow: 0 4px 20px rgba(255,79,154,0.35); cursor: pointer; pointer-events: auto; display: inline-flex; align-items: center; gap: 8px;" onclick="toggleAudio(event)">
+      <span id="play-icon" style="font-size: 14px; pointer-events: none;">▶</span>
+      <span id="music-btn-text" style="font-weight: 600; color: #ff82bb; pointer-events: none;">Play Song: Mile Ho Tum</span>
+      <div id="eq-container" style="display: none; align-items: flex-end; gap: 2px; height: 14px; margin-left: 4px; pointer-events: none;">
+        <span class="eq-bar-1" style="width: 3px; background: #ff4f9a; border-radius: 3px; display: inline-block;"></span>
+        <span class="eq-bar-2" style="width: 3px; background: #c084fc; border-radius: 3px; display: inline-block;"></span>
+        <span class="eq-bar-3" style="width: 3px; background: #ff82bb; border-radius: 3px; display: inline-block;"></span>
+      </div>
+    </button>
+  </div>
 
   <!-- Audio Toast Notification -->
   <div id="audio-toast" style="position: fixed; bottom: 20px; right: 20px; z-index: 99; padding: 10px 18px; border-radius: 999px; background: rgba(20,4,35,0.92); border: 1px solid rgba(255,79,154,0.4); color: #f3e8ff; font-size: 12px; display: none; align-items: center; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); backdrop-filter: blur(10px);">
@@ -451,15 +443,6 @@
     const musicBtnText = document.getElementById('music-btn-text');
     const eqContainer = document.getElementById('eq-container');
     const audioToast = document.getElementById('audio-toast');
-    const timeLabel = document.getElementById('audio-time-label');
-    const volumeSlider = document.getElementById('volume-slider');
-
-    function formatTime(sec) {
-      if (isNaN(sec) || sec < 0) return '0:00';
-      const m = Math.floor(sec / 60);
-      const s = Math.floor(sec % 60);
-      return `${m}:${s < 10 ? '0' : ''}${s}`;
-    }
 
     function showToast(msg) {
       if (!audioToast) return;
@@ -495,7 +478,7 @@
           updateAudioUI(true);
           showToast('Playing <strong>Mile Ho Tum Humko</strong> 💜');
         }).catch(err => {
-          console.warn('Audio play request:', err);
+          console.warn('Audio play request error:', err);
           updateAudioUI(false);
         });
       }
@@ -507,34 +490,25 @@
       updateAudioUI(false);
     }
 
-    function toggleAudio(e) {
-      if (e) e.stopPropagation();
+    window.toggleAudio = function(e) {
+      if (e) {
+        e.stopPropagation();
+      }
       if (!audio) return;
       if (audio.paused) {
         playAudio();
       } else {
         pauseAudio();
       }
-    }
+    };
 
     if (musicBtn) {
-      musicBtn.addEventListener('click', toggleAudio);
-    }
-
-    if (volumeSlider && audio) {
-      volumeSlider.addEventListener('input', (e) => {
-        audio.volume = parseFloat(e.target.value);
-      });
+      musicBtn.addEventListener('click', window.toggleAudio);
     }
 
     if (audio) {
       audio.addEventListener('play', () => updateAudioUI(true));
       audio.addEventListener('pause', () => updateAudioUI(false));
-      audio.addEventListener('timeupdate', () => {
-        if (timeLabel) {
-          timeLabel.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration || 240)}`;
-        }
-      });
       audio.addEventListener('ended', () => {
         audio.currentTime = 0;
         playAudio();
