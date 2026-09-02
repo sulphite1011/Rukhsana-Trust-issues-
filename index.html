@@ -467,18 +467,201 @@
     Rukh... Rukhsana? 💜 • A Story of Trust
   </footer>
 
-  <!-- Bulletproof Audio & Story Controller -->
+  <!-- Audio Controller & Story Engine -->
   <script>
-    // Audio Player Reference
-    const audio = document.getElementById('audio-player');
+    // Robust Dual-Engine Music Player for Chrome, Safari & Mobile
+    class RomanticAudioPlayer {
+      constructor(audioUrl) {
+        this.audioUrl = audioUrl;
+        this.audioCtx = null;
+        this.audioBuffer = null;
+        this.sourceNode = null;
+        this.gainNode = null;
+        this.isPlaying = false;
+        this.isLoaded = false;
+        this.isLoading = false;
+        this.pauseOffset = 0;
+        this.startTime = 0;
+        this.htmlAudio = null;
+        this.blobUrl = null;
+
+        this.init();
+      }
+
+      init() {
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            this.audioCtx = new AudioContextClass();
+          }
+        } catch (e) {
+          console.warn('Web Audio Context initialization warning:', e);
+        }
+
+        // Prepare standard HTML5 audio fallback
+        this.htmlAudio = new Audio();
+        this.htmlAudio.src = this.audioUrl;
+        this.htmlAudio.loop = true;
+        this.htmlAudio.preload = 'auto';
+
+        // Preload and decode in memory immediately
+        this.loadAudio();
+      }
+
+      async loadAudio() {
+        if (this.isLoading || this.isLoaded) return;
+        this.isLoading = true;
+
+        try {
+          const response = await fetch(this.audioUrl);
+          const arrayBuffer = await response.arrayBuffer();
+
+          // Create Blob URL for rock-solid HTML5 playback fallback
+          try {
+            const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+            this.blobUrl = URL.createObjectURL(blob);
+            if (this.htmlAudio) {
+              this.htmlAudio.src = this.blobUrl;
+            }
+          } catch (e) {}
+
+          // Decode via Web Audio API for 0-latency instant playback
+          if (this.audioCtx) {
+            this.audioBuffer = await this.audioCtx.decodeAudioData(arrayBuffer);
+            this.isLoaded = true;
+            this.isLoading = false;
+            console.log('Romantic audio successfully loaded & decoded!');
+          }
+        } catch (err) {
+          console.warn('Prefetch decode notice, using direct audio stream fallback:', err);
+          this.isLoaded = true;
+          this.isLoading = false;
+        }
+      }
+
+      async play() {
+        if (this.isPlaying) return;
+
+        // 1. Resume Web Audio Context if suspended by Chrome
+        if (this.audioCtx && this.audioCtx.state === 'suspended') {
+          try {
+            await this.audioCtx.resume();
+          } catch (e) {}
+        }
+
+        // 2. Try Web Audio Buffer Source (Instant RAM playback, perfectly reliable in Chrome)
+        if (this.audioBuffer && this.audioCtx) {
+          try {
+            if (this.sourceNode) {
+              try { this.sourceNode.stop(); } catch (e) {}
+            }
+            this.sourceNode = this.audioCtx.createBufferSource();
+            this.sourceNode.buffer = this.audioBuffer;
+            this.sourceNode.loop = true;
+
+            this.gainNode = this.audioCtx.createGain();
+            this.gainNode.gain.setValueAtTime(1.0, this.audioCtx.currentTime);
+
+            this.sourceNode.connect(this.gainNode);
+            this.gainNode.connect(this.audioCtx.destination);
+
+            const offset = this.pauseOffset % this.audioBuffer.duration;
+            this.sourceNode.start(0, offset);
+            this.startTime = this.audioCtx.currentTime - offset;
+            this.isPlaying = true;
+            this.updateUI(true);
+            showToast('Playing <strong>Mile Ho Tum Humko</strong> 💜');
+            return;
+          } catch (err) {
+            console.warn('Web Audio buffer start fallback to HTMLAudio:', err);
+          }
+        }
+
+        // 3. HTML5 Audio Fallback
+        if (this.htmlAudio) {
+          try {
+            this.htmlAudio.muted = false;
+            const playPromise = this.htmlAudio.play();
+            if (playPromise !== undefined) {
+              await playPromise;
+            }
+            this.isPlaying = true;
+            this.updateUI(true);
+            showToast('Playing <strong>Mile Ho Tum Humko</strong> 💜');
+          } catch (err) {
+            console.error('HTML5 audio play error:', err);
+            this.isPlaying = false;
+            this.updateUI(false);
+          }
+        }
+      }
+
+      pause() {
+        if (!this.isPlaying) return;
+
+        if (this.sourceNode && this.audioCtx) {
+          try {
+            this.pauseOffset = this.audioCtx.currentTime - this.startTime;
+            this.sourceNode.stop();
+            this.sourceNode.disconnect();
+            this.sourceNode = null;
+          } catch (e) {}
+        }
+
+        if (this.htmlAudio && !this.htmlAudio.paused) {
+          try {
+            this.htmlAudio.pause();
+          } catch (e) {}
+        }
+
+        this.isPlaying = false;
+        this.updateUI(false);
+        showToast('Music Paused ⏸');
+      }
+
+      toggle() {
+        if (this.isPlaying) {
+          this.pause();
+        } else {
+          this.play();
+        }
+      }
+
+      updateUI(playing) {
+        const playIcon = document.getElementById('play-icon');
+        const musicBtnText = document.getElementById('music-btn-text');
+        const eqContainer = document.getElementById('eq-container');
+        const musicBtn = document.getElementById('music-toggle-btn');
+
+        if (playIcon) playIcon.textContent = playing ? '⏸' : '▶';
+        if (musicBtnText) musicBtnText.textContent = playing ? 'Playing: Mile Ho Tum' : 'Play Song: Mile Ho Tum';
+        if (eqContainer) eqContainer.style.display = playing ? 'inline-flex' : 'none';
+        if (musicBtn) {
+          if (playing) {
+            musicBtn.classList.add('is-playing');
+          } else {
+            musicBtn.classList.remove('is-playing');
+          }
+        }
+      }
+    }
+
+    // Initialize player instance
+    const player = new RomanticAudioPlayer('mile_ho_tum.mp3');
+
+    // Music Toggle Button Handler
     const musicBtn = document.getElementById('music-toggle-btn');
-    const playIcon = document.getElementById('play-icon');
-    const musicBtnText = document.getElementById('music-btn-text');
-    const eqContainer = document.getElementById('eq-container');
+    if (musicBtn) {
+      musicBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        player.toggle();
+      });
+    }
+
+    // Toast Notifications
     const audioToast = document.getElementById('audio-toast');
     const audioToastMsg = document.getElementById('audio-toast-msg');
-
-    let isAudioPlaying = false;
     let toastTimeout = null;
 
     function showToast(msg) {
@@ -491,68 +674,18 @@
       }, 3500);
     }
 
-    function setMusicUI(playing) {
-      isAudioPlaying = playing;
-      if (playIcon) playIcon.textContent = playing ? '⏸' : '▶';
-      if (musicBtnText) musicBtnText.textContent = playing ? 'Playing: Mile Ho Tum' : 'Play Song: Mile Ho Tum';
-      if (eqContainer) eqContainer.style.display = playing ? 'inline-flex' : 'none';
-      if (musicBtn) {
-        if (playing) {
-          musicBtn.classList.add('is-playing');
-        } else {
-          musicBtn.classList.remove('is-playing');
+    // Auto-unlock audio playback on first user gesture
+    let hasInteracted = false;
+    function unlockAudioOnGesture() {
+      if (!hasInteracted) {
+        hasInteracted = true;
+        if (!player.isPlaying) {
+          player.play();
         }
       }
     }
-
-    function playMusic() {
-      if (!audio) return;
-      audio.muted = false;
-      const promise = audio.play();
-      if (promise !== undefined) {
-        promise.then(() => {
-          setMusicUI(true);
-          showToast('Playing <strong>Mile Ho Tum Humko</strong> 💜');
-        }).catch((err) => {
-          console.warn('Playback notice:', err);
-          setMusicUI(false);
-        });
-      }
-    }
-
-    function pauseMusic() {
-      if (!audio) return;
-      audio.pause();
-      setMusicUI(false);
-      showToast('Music Paused ⏸');
-    }
-
-    function toggleMusic() {
-      if (!audio) return;
-      if (audio.paused) {
-        playMusic();
-      } else {
-        pauseMusic();
-      }
-    }
-
-    // Attach single clean listener to music button
-    if (musicBtn) {
-      musicBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleMusic();
-      });
-    }
-
-    if (audio) {
-      audio.addEventListener('play', () => setMusicUI(true));
-      audio.addEventListener('pause', () => setMusicUI(false));
-      audio.addEventListener('ended', () => {
-        audio.currentTime = 0;
-        playMusic();
-      });
-    }
+    document.addEventListener('click', unlockAudioOnGesture, { once: true });
+    document.addEventListener('touchstart', unlockAudioOnGesture, { once: true });
 
     // Step Navigation Engine
     const steps = ['step-intro', 'step-story', 'step-trust', 'step-question', 'step-celebration'];
@@ -603,8 +736,8 @@
     const btnStart = document.getElementById('btn-start');
     if (btnStart) {
       btnStart.addEventListener('click', () => {
-        if (audio && audio.paused) {
-          playMusic();
+        if (!player.isPlaying) {
+          player.play();
         }
         showStep(1);
       });
@@ -746,7 +879,7 @@
       yesBtn.addEventListener('click', () => {
         showStep(4);
         fireConfetti();
-        if (audio && audio.paused) playMusic();
+        if (!player.isPlaying) player.play();
       });
     }
 
