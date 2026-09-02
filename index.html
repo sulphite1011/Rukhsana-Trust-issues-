@@ -7,8 +7,6 @@
   <meta name="description" content="An interactive trust story celebrating the TikTok inbox Assalam-o-Alaikum, the Rukh to Rukhsana name guess, dynamic trust meter to 100%, playful questions, and the romantic song Mile Ho Tum Humko." />
   <meta property="og:title" content="Rukh... Rukhsana? 💜" />
   <meta property="og:description" content="An interactive trust story celebrating the TikTok inbox Assalam-o-Alaikum, the Rukh to Rukhsana name guess, dynamic trust meter to 100%, playful questions, and the romantic song Mile Ho Tum Humko." />
-  <meta property="og:type" content="website" />
-  <meta name="twitter:card" content="summary_large_image" />
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,7 +21,6 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -46,10 +43,10 @@
     /* Ambient background gradient glows */
     .bg-blob-1 {
       position: fixed;
-      top: -12%;
+      top: -10%;
       left: -10%;
-      width: 55vw;
-      height: 55vw;
+      width: 50vw;
+      height: 50vw;
       background: radial-gradient(circle, rgba(255, 79, 154, 0.22) 0%, rgba(140, 82, 255, 0.1) 60%, transparent 80%);
       filter: blur(60px);
       z-index: 0;
@@ -59,10 +56,10 @@
 
     .bg-blob-2 {
       position: fixed;
-      bottom: -15%;
+      bottom: -10%;
       right: -10%;
-      width: 60vw;
-      height: 60vw;
+      width: 50vw;
+      height: 50vw;
       background: radial-gradient(circle, rgba(140, 82, 255, 0.25) 0%, rgba(255, 79, 154, 0.12) 60%, transparent 80%);
       filter: blur(70px);
       z-index: 0;
@@ -106,6 +103,7 @@
       justify-content: center;
       gap: 8px;
       text-decoration: none;
+      user-select: none;
     }
 
     .btn-primary:hover:not(:disabled) {
@@ -137,6 +135,7 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
+      user-select: none;
     }
 
     .btn-secondary:hover {
@@ -181,7 +180,7 @@
     /* Step Transition */
     .step-view {
       display: none;
-      animation: fadeIn 0.5s ease-out forwards;
+      animation: fadeIn 0.4s ease-out forwards;
     }
 
     .step-view.active {
@@ -189,7 +188,7 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(16px); }
+      from { opacity: 0; transform: translateY(14px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
@@ -197,9 +196,48 @@
       width: 100%;
       max-width: 720px;
       margin: 0 auto;
-      padding: 20px 16px;
+      padding: 24px 16px;
       position: relative;
       z-index: 10;
+    }
+
+    /* Music Floating Button */
+    #music-toggle-btn {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 99999;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #ff82bb;
+      background: rgba(18, 4, 30, 0.94);
+      border: 1.5px solid rgba(255, 79, 154, 0.6);
+      border-radius: 9999px;
+      box-shadow: 0 4px 25px rgba(255, 79, 154, 0.4);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: all 0.25s ease;
+    }
+
+    #music-toggle-btn:hover {
+      border-color: rgba(255, 79, 154, 0.9);
+      box-shadow: 0 6px 30px rgba(255, 79, 154, 0.6);
+      transform: scale(1.04);
+    }
+
+    #music-toggle-btn:active {
+      transform: scale(0.96);
+    }
+
+    #music-toggle-btn.is-playing {
+      border-color: #ff4f9a;
+      box-shadow: 0 0 25px rgba(255, 79, 154, 0.7);
+      background: rgba(30, 5, 45, 0.96);
     }
   </style>
 </head>
@@ -207,29 +245,24 @@
   <div class="bg-blob-1"></div>
   <div class="bg-blob-2"></div>
 
-  <!-- Audio Player Element (Standard HTML5 Audio) -->
-  <audio id="audio-player" preload="auto" loop playsinline>
-    <source src="mile_ho_tum.mp3" type="audio/mpeg">
-    <source src="/mile_ho_tum.mp3" type="audio/mpeg">
-  </audio>
+  <!-- Audio Element (Direct Source) -->
+  <audio id="audio-player" src="mile_ho_tum.mp3" preload="auto" loop playsinline></audio>
 
   <!-- Floating Music Controller Button -->
-  <div style="position: fixed; top: 16px; right: 16px; z-index: 9999;">
-    <button id="music-toggle-btn" class="btn-secondary" style="padding: 10px 18px; font-size: 13px; border-color: rgba(255,79,154,0.6); background: rgba(15,3,25,0.95); box-shadow: 0 4px 20px rgba(255,79,154,0.35); cursor: pointer; pointer-events: auto; display: inline-flex; align-items: center; gap: 8px;" onclick="toggleAudio(event)">
-      <span id="play-icon" style="font-size: 14px; pointer-events: none;">▶</span>
-      <span id="music-btn-text" style="font-weight: 600; color: #ff82bb; pointer-events: none;">Play Song: Mile Ho Tum</span>
-      <div id="eq-container" style="display: none; align-items: flex-end; gap: 2px; height: 14px; margin-left: 4px; pointer-events: none;">
-        <span class="eq-bar-1" style="width: 3px; background: #ff4f9a; border-radius: 3px; display: inline-block;"></span>
-        <span class="eq-bar-2" style="width: 3px; background: #c084fc; border-radius: 3px; display: inline-block;"></span>
-        <span class="eq-bar-3" style="width: 3px; background: #ff82bb; border-radius: 3px; display: inline-block;"></span>
-      </div>
-    </button>
-  </div>
+  <button id="music-toggle-btn" type="button" aria-label="Toggle Romantic Background Music">
+    <span id="play-icon" style="font-size: 14px;">▶</span>
+    <span id="music-btn-text">Play Song: Mile Ho Tum</span>
+    <div id="eq-container" style="display: none; align-items: flex-end; gap: 2.5px; height: 14px; margin-left: 4px;">
+      <span class="eq-bar-1" style="width: 3px; background: #ff4f9a; border-radius: 3px; display: inline-block;"></span>
+      <span class="eq-bar-2" style="width: 3px; background: #c084fc; border-radius: 3px; display: inline-block;"></span>
+      <span class="eq-bar-3" style="width: 3px; background: #ff82bb; border-radius: 3px; display: inline-block;"></span>
+    </div>
+  </button>
 
   <!-- Audio Toast Notification -->
-  <div id="audio-toast" style="position: fixed; bottom: 20px; right: 20px; z-index: 99; padding: 10px 18px; border-radius: 999px; background: rgba(20,4,35,0.92); border: 1px solid rgba(255,79,154,0.4); color: #f3e8ff; font-size: 12px; display: none; align-items: center; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); backdrop-filter: blur(10px);">
+  <div id="audio-toast" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; padding: 10px 18px; border-radius: 999px; background: rgba(20,4,35,0.95); border: 1px solid rgba(255,79,154,0.5); color: #f3e8ff; font-size: 13px; display: none; align-items: center; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.7); backdrop-filter: blur(12px);">
     <span>🎵</span>
-    <span>Playing <strong>Mile Ho Tum Humko</strong> 💜</span>
+    <span id="audio-toast-msg">Playing <strong>Mile Ho Tum Humko</strong> 💜</span>
   </div>
 
   <main class="container" style="flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 85vh;">
@@ -434,100 +467,94 @@
     Rukh... Rukhsana? 💜 • A Story of Trust
   </footer>
 
-  <!-- Audio Controller & App Script -->
+  <!-- Bulletproof Audio & Story Controller -->
   <script>
-    // Audio Player Elements
+    // Audio Player Reference
     const audio = document.getElementById('audio-player');
     const musicBtn = document.getElementById('music-toggle-btn');
     const playIcon = document.getElementById('play-icon');
     const musicBtnText = document.getElementById('music-btn-text');
     const eqContainer = document.getElementById('eq-container');
     const audioToast = document.getElementById('audio-toast');
+    const audioToastMsg = document.getElementById('audio-toast-msg');
+
+    let isAudioPlaying = false;
+    let toastTimeout = null;
 
     function showToast(msg) {
       if (!audioToast) return;
-      if (msg) audioToast.innerHTML = `<span>🎵</span><span>${msg}</span>`;
+      if (toastTimeout) clearTimeout(toastTimeout);
+      if (audioToastMsg) audioToastMsg.innerHTML = msg;
       audioToast.style.display = 'flex';
-      setTimeout(() => {
+      toastTimeout = setTimeout(() => {
         if (audioToast) audioToast.style.display = 'none';
       }, 3500);
     }
 
-    function updateAudioUI(isPlaying) {
-      if (playIcon) playIcon.textContent = isPlaying ? '⏸' : '▶';
-      if (musicBtnText) musicBtnText.textContent = isPlaying ? 'Playing: Mile Ho Tum' : 'Play Song: Mile Ho Tum';
-      if (eqContainer) eqContainer.style.display = isPlaying ? 'inline-flex' : 'none';
+    function setMusicUI(playing) {
+      isAudioPlaying = playing;
+      if (playIcon) playIcon.textContent = playing ? '⏸' : '▶';
+      if (musicBtnText) musicBtnText.textContent = playing ? 'Playing: Mile Ho Tum' : 'Play Song: Mile Ho Tum';
+      if (eqContainer) eqContainer.style.display = playing ? 'inline-flex' : 'none';
       if (musicBtn) {
-        if (isPlaying) {
-          musicBtn.style.borderColor = 'rgba(255, 79, 154, 0.9)';
-          musicBtn.style.boxShadow = '0 0 20px rgba(255, 79, 154, 0.5)';
+        if (playing) {
+          musicBtn.classList.add('is-playing');
         } else {
-          musicBtn.style.borderColor = 'rgba(255, 79, 154, 0.6)';
-          musicBtn.style.boxShadow = '0 4px 20px rgba(255, 79, 154, 0.35)';
+          musicBtn.classList.remove('is-playing');
         }
       }
     }
 
-    // Play/Pause Functions
-    function playAudio() {
+    function playMusic() {
       if (!audio) return;
       audio.muted = false;
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          updateAudioUI(true);
+      const promise = audio.play();
+      if (promise !== undefined) {
+        promise.then(() => {
+          setMusicUI(true);
           showToast('Playing <strong>Mile Ho Tum Humko</strong> 💜');
-        }).catch(err => {
-          console.warn('Audio play request error:', err);
-          updateAudioUI(false);
+        }).catch((err) => {
+          console.warn('Playback notice:', err);
+          setMusicUI(false);
         });
       }
     }
 
-    function pauseAudio() {
+    function pauseMusic() {
       if (!audio) return;
       audio.pause();
-      updateAudioUI(false);
+      setMusicUI(false);
+      showToast('Music Paused ⏸');
     }
 
-    window.toggleAudio = function(e) {
-      if (e) {
-        e.stopPropagation();
-      }
+    function toggleMusic() {
       if (!audio) return;
       if (audio.paused) {
-        playAudio();
+        playMusic();
       } else {
-        pauseAudio();
+        pauseMusic();
       }
-    };
-
-    if (musicBtn) {
-      musicBtn.addEventListener('click', window.toggleAudio);
     }
 
-    if (audio) {
-      audio.addEventListener('play', () => updateAudioUI(true));
-      audio.addEventListener('pause', () => updateAudioUI(false));
-      audio.addEventListener('ended', () => {
-        audio.currentTime = 0;
-        playAudio();
+    // Attach single clean listener to music button
+    if (musicBtn) {
+      musicBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleMusic();
       });
     }
 
-    // Auto-unlock on first tap or click anywhere on page
-    let userHasInteracted = false;
-    function handleFirstUserTouch() {
-      if (userHasInteracted) return;
-      userHasInteracted = true;
-      if (audio && audio.paused) {
-        playAudio();
-      }
+    if (audio) {
+      audio.addEventListener('play', () => setMusicUI(true));
+      audio.addEventListener('pause', () => setMusicUI(false));
+      audio.addEventListener('ended', () => {
+        audio.currentTime = 0;
+        playMusic();
+      });
     }
-    document.addEventListener('click', handleFirstUserTouch, { once: true });
-    document.addEventListener('touchstart', handleFirstUserTouch, { once: true });
 
-    // Step Navigation
+    // Step Navigation Engine
     const steps = ['step-intro', 'step-story', 'step-trust', 'step-question', 'step-celebration'];
     let currentStepIdx = 0;
 
@@ -572,16 +599,18 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Step 1 -> Step 2
+    // Step 1: Let's Begin -> Starts song & goes to Story
     const btnStart = document.getElementById('btn-start');
     if (btnStart) {
       btnStart.addEventListener('click', () => {
-        if (audio && audio.paused) playAudio();
+        if (audio && audio.paused) {
+          playMusic();
+        }
         showStep(1);
       });
     }
 
-    // Step 2 -> Back/Next
+    // Step 2: Story Navigation
     const btnStoryBack = document.getElementById('btn-story-back');
     const btnStoryNext = document.getElementById('btn-story-next');
 
@@ -595,7 +624,7 @@
       });
     }
 
-    // Step 3 Trust Meter Animation
+    // Step 3: Real-Time Trust Meter Animation
     let counterRunning = false;
     function startTrustCounter() {
       if (counterRunning) return;
@@ -652,7 +681,7 @@
       btnTrustNext.addEventListener('click', () => showStep(3));
     }
 
-    // Step 4 Question & Dodging No
+    // Step 4: Playful Question & Dodging "No" Button
     const noBtn = document.getElementById('btn-no');
     const yesBtn = document.getElementById('btn-yes');
     const questionCard = document.getElementById('question-card');
@@ -717,7 +746,7 @@
       yesBtn.addEventListener('click', () => {
         showStep(4);
         fireConfetti();
-        if (audio && audio.paused) playAudio();
+        if (audio && audio.paused) playMusic();
       });
     }
 
@@ -761,7 +790,7 @@
       });
     }
 
-    // Floating hearts on tap
+    // Floating hearts on tap during celebration
     document.addEventListener('click', (e) => {
       if (currentStepIdx === 4) {
         const heart = document.createElement('div');
@@ -771,7 +800,7 @@
         heart.style.top = `${e.clientY - 10}px`;
         heart.style.fontSize = '24px';
         heart.style.pointerEvents = 'none';
-        heart.style.zIndex = '999';
+        heart.style.zIndex = '9999';
         heart.style.transition = 'all 1s ease-out';
         document.body.appendChild(heart);
 
